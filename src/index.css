@@ -53,6 +53,33 @@ html, body {
 }
 .fade-in { animation: fadeIn 0.25s ease forwards; }
 
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.slide-up { animation: slideUp 0.22s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+
+@keyframes pulseGold {
+  0%   { transform: scale(1);    color: inherit; text-shadow: none; }
+  35%  { transform: scale(1.38); color: #c9a84c; text-shadow: 0 0 32px rgba(201,168,76,0.95); }
+  70%  { transform: scale(1.18); color: #c9a84c; text-shadow: 0 0 18px rgba(201,168,76,0.6); }
+  100% { transform: scale(1.1);  color: #c9a84c; }
+}
+.pulse-gold { animation: pulseGold 0.3s ease-out forwards; display: inline-block; }
+
+@keyframes badgePop {
+  0%   { transform: scale(0.55); opacity: 0; }
+  65%  { transform: scale(1.14); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.badge-pop { animation: badgePop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+@keyframes playerIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.player-in { animation: playerIn 0.2s ease forwards; }
+
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 input, button { outline: none; }

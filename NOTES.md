@@ -53,3 +53,21 @@ An offline-first golf scoring PWA. Augusta-inspired design. Track strokes hole-b
 - [ ] Popular US course library built-in
 - [ ] Stats and trends charts
 - [ ] Cloud backup for round history
+
+---
+
+## Future Feature Plan
+
+### Next Sprint
+- **Handicap tracking** — calculate and display handicap based on round history. This is the Beta-removal feature.
+- **Pre-loaded courses** — add 10 popular local courses to eliminate cold-start friction for new users
+- **Quick Start player selector** — add the same 1-4 player UI that Start Round has
+
+### Connectivity (future)
+- Same Supabase + magic link auth plan as Darts
+- Group leaderboards, cross-device sync, round sharing
+
+### Scoring Enhancements
+- Side games: Skins, Nassau, Match Play — auto-calculated
+- Penalties tracker per hole
+- Notes field per hole
