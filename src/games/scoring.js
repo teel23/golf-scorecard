@@ -39,3 +39,25 @@ export function scoreLabel(svp) {
   if (svp === 2)  return 'Double';
   return `+${svp}`;
 }
+
+// Calculate net score for a player given their handicap index.
+// Holes need a `handicap` field (1-18 difficulty rank, 1=hardest).
+// Returns null if handicapIndex is 0/null or no holes have a handicap rank.
+export function calculateNetScore(holes, handicapIndex) {
+  if (!handicapIndex || handicapIndex <= 0) return null;
+  const played = holes.filter(h => h.strokes > 0);
+  if (!played.length) return null;
+  const holesWithRank = played.filter(h => h.handicap != null && h.handicap > 0);
+  if (!holesWithRank.length) return null;
+  const base  = Math.floor(handicapIndex / 18);
+  const extra = handicapIndex % 18;
+  let netStrokes = 0;
+  for (const h of played) {
+    const strokesGiven = h.handicap != null && h.handicap > 0
+      ? base + (h.handicap <= extra ? 1 : 0)
+      : 0;
+    netStrokes += Math.max(h.strokes - strokesGiven, 0);
+  }
+  const totalPar = played.reduce((s, h) => s + h.par, 0);
+  return { netStrokes, netVsPar: netStrokes - totalPar };
+}

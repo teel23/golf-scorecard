@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { calculateRoundTotals, calculateFrontBackTotals, formatScoreVsPar, scoreClass } from '../games/scoring';
+import { calculateRoundTotals, calculateFrontBackTotals, formatScoreVsPar, scoreClass, calculateNetScore } from '../games/scoring';
 
 // Renders a full hole-by-hole scorecard for one player's holes array.
 function PlayerScorecard({ holes }) {
@@ -58,13 +58,18 @@ export default function RoundSummary({ round, onHome, onHistory }) {
   // ── Multi-player view ──────────────────────────────────────────────────────
   if (isMultiPlayer) {
     // Rank players by total strokes (ascending)
+    const anyHandicap = round.players.some(p => p.handicapIndex > 0);
     const rankedPlayers = round.players
       .map(p => {
         const { totalStrokes, totalPar, scoreVsPar } = calculateRoundTotals(p.holes);
         const totalMulligans = p.holes.reduce((s, h) => s + (h.mulligans || 0), 0);
-        return { ...p, totalStrokes, totalPar, scoreVsPar, totalMulligans };
+        const net = p.handicapIndex > 0 ? calculateNetScore(p.holes, p.handicapIndex) : null;
+        return { ...p, totalStrokes, totalPar, scoreVsPar, totalMulligans, net };
       })
-      .sort((a, b) => a.totalStrokes - b.totalStrokes);
+      .sort((a, b) => {
+        if (anyHandicap && a.net && b.net) return a.net.netStrokes - b.net.netStrokes;
+        return a.totalStrokes - b.totalStrokes;
+      });
 
     const medals = ['🥇', '🥈', '🥉', '4️⃣'];
 
@@ -107,8 +112,21 @@ export default function RoundSummary({ round, onHome, onHistory }) {
                     )}
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#f5edd6' }}>{p.totalStrokes}</div>
-                    <div className={svpCls} style={{ fontSize: 12, fontWeight: 700 }}>{svpStr}</div>
+                    {p.net ? (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, justifyContent: 'flex-end' }}>
+                          <span style={{ fontSize: 22, fontWeight: 900, color: '#f5edd6' }}>{p.net.netStrokes}</span>
+                          <span style={{ fontSize: 12, color: 'rgba(245,237,214,0.4)' }}>net</span>
+                        </div>
+                        <div className={scoreClass(p.net.netVsPar)} style={{ fontSize: 12, fontWeight: 700 }}>{formatScoreVsPar(p.net.netVsPar)}</div>
+                        <div style={{ fontSize: 10, color: 'rgba(245,237,214,0.3)', marginTop: 1 }}>gross {p.totalStrokes}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ fontSize: 22, fontWeight: 900, color: '#f5edd6' }}>{p.totalStrokes}</div>
+                        <div className={svpCls} style={{ fontSize: 12, fontWeight: 700 }}>{svpStr}</div>
+                      </>
+                    )}
                   </div>
                 </div>
               );
@@ -163,13 +181,15 @@ export default function RoundSummary({ round, onHome, onHistory }) {
     );
   }
 
-  // ── Single-player view (original UI, unchanged) ────────────────────────────
+  // ── Single-player view ────────────────────────────────────────────────────
   const holes = round.holes;
+  const playerHandicapIndex = round.players?.[0]?.handicapIndex ?? null;
   const { totalStrokes, totalPar, scoreVsPar, holesPlayed } = calculateRoundTotals(holes);
   const { front, back } = calculateFrontBackTotals(holes);
   const svpStr        = formatScoreVsPar(scoreVsPar);
   const svpCls        = scoreClass(scoreVsPar);
   const totalMulligans = holes.reduce((s, h) => s + (h.mulligans || 0), 0);
+  const net = playerHandicapIndex > 0 ? calculateNetScore(holes, playerHandicapIndex) : null;
 
   const StatCard = ({ label, main, sub, cls }) => (
     <div className="fairway-panel" style={{ borderRadius: 14, padding: '14px', textAlign: 'center' }}>
@@ -198,6 +218,17 @@ export default function RoundSummary({ round, onHome, onHistory }) {
             Par {totalPar} · {holesPlayed} holes{totalMulligans > 0 ? ` · ${totalMulligans} mulligan${totalMulligans !== 1 ? 's' : ''}` : ''}
           </div>
         </div>
+
+        {/* Net score card (shows only when handicap is set) */}
+        {net && (
+          <div className="fairway-panel" style={{ borderRadius: 14, padding: '12px 16px', textAlign: 'center', marginBottom: 12 }}>
+            <div style={{ fontSize: 10, color: 'rgba(201,168,76,0.8)', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 700, marginBottom: 4 }}>
+              Net Score · Hdcp {playerHandicapIndex}
+            </div>
+            <div className={scoreClass(net.netVsPar)} style={{ fontSize: 32, fontWeight: 900 }}>{net.netStrokes}</div>
+            <div style={{ fontSize: 12, color: 'rgba(245,237,214,0.5)', marginTop: 2 }}>{formatScoreVsPar(net.netVsPar)} net vs par</div>
+          </div>
+        )}
 
         {/* Stats grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>

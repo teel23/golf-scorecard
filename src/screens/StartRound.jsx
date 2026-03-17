@@ -8,6 +8,7 @@ export default function StartRound({ onBack, onStart }) {
   const [notes, setNotes]         = useState('');
   const [playerCount, setPlayerCount] = useState(2);
   const [playerNames, setPlayerNames] = useState(['Player 1', 'Player 2', 'Player 3', 'Player 4']);
+  const [playerHandicaps, setPlayerHandicaps] = useState(['', '', '', '']);
 
   useEffect(() => {
     getCourses().then(cs => { setCourses(cs); if (cs.length === 1) setSelected(cs[0]); });
@@ -19,10 +20,17 @@ export default function StartRound({ onBack, onStart }) {
     setPlayerNames(next);
   };
 
+  const setHandicap = (i, val) => {
+    const next = [...playerHandicaps];
+    next[i] = val;
+    setPlayerHandicaps(next);
+  };
+
   const handleStart = () => {
     if (!selected) return;
     const activePlayers = Array.from({ length: playerCount }, (_, i) => ({
       name: playerNames[i].trim() || `Player ${i + 1}`,
+      handicapIndex: playerHandicaps[i] !== '' ? Number(playerHandicaps[i]) : null,
       holes: selected.holes.map(h => ({
         number:    h.number,
         par:       h.par,
@@ -113,13 +121,22 @@ export default function StartRound({ onBack, onStart }) {
           {/* Name inputs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {Array.from({ length: playerCount }, (_, i) => (
-              <input
-                key={i}
-                value={playerNames[i]}
-                onChange={e => setName(i, e.target.value)}
-                placeholder={`Player ${i + 1}`}
-                style={inputStyle}
-              />
+              <div key={i} style={{ display: 'flex', gap: 8 }}>
+                <input
+                  value={playerNames[i]}
+                  onChange={e => setName(i, e.target.value)}
+                  placeholder={`Player ${i + 1}`}
+                  style={{ ...inputStyle, flex: 1 }}
+                />
+                <input
+                  type="number"
+                  value={playerHandicaps[i]}
+                  onChange={e => setHandicap(i, e.target.value)}
+                  placeholder="Hdcp"
+                  min={0} max={54}
+                  style={{ ...inputStyle, width: 72, flex: 'none', textAlign: 'center', fontSize: 14 }}
+                />
+              </div>
             ))}
           </div>
         </div>
